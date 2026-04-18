@@ -1,45 +1,55 @@
 # Beauty / Skincare / Innovation RSS digest agent
 
-A small Python agent that:
+Scans a list of beauty publications daily, filters articles for
+beauty/skincare/innovation, summarizes them with Claude, and posts the digest
+to Slack with the date range analyzed.
 
-1. Reads a list of RSS feeds from `feeds.yaml`.
-2. Keeps articles from the last `LOOKBACK_HOURS` hours that mention beauty,
-   skincare, innovation, or related keywords.
-3. Summarizes them with Claude, grouped by theme.
-4. Posts the digest (with the date range analyzed) to a Slack channel via an
-   incoming webhook.
+## Quick start (GitHub Actions — no terminal needed)
 
-## Setup
+You'll do everything in your browser on github.com.
+
+### 1. Add your secrets
+
+In the repo on GitHub:
+
+1. Click **Settings** (top nav of the repo)
+2. Left sidebar → **Secrets and variables** → **Actions**
+3. Click **New repository secret** and add each of these (one at a time):
+   - Name: `ANTHROPIC_API_KEY` → Value: your key starting with `sk-ant-...`
+   - Name: `SLACK_WEBHOOK_URL` → Value: your Slack webhook URL
+
+### 2. Enable Actions (if needed)
+
+1. Click the **Actions** tab at the top of the repo
+2. If prompted, click **I understand my workflows, go ahead and enable them**
+
+### 3. Test it manually
+
+1. In the **Actions** tab, click **Daily Beauty Digest** in the left sidebar
+2. Click **Run workflow** (right side) → **Run workflow**
+3. Wait ~1 minute. A green checkmark = success
+4. Check your Slack channel for the digest
+5. If it failed (red X), click the run and expand the "Run digest" step — common
+   issues are a typo'd secret or a broken feed URL
+
+### 4. It runs automatically
+
+The workflow is scheduled for **13:00 UTC daily**
+(`.github/workflows/daily-digest.yml`). Change the `cron:` line to pick a
+different time — use https://crontab.guru to build your schedule.
+
+## Editing the publication list
+
+Edit `feeds.yaml` directly on GitHub:
+1. Click `feeds.yaml` in the file list
+2. Click the pencil (Edit) icon
+3. Add/remove entries, commit to the branch
+
+## Local run (optional, for developers)
 
 ```bash
-python3 -m venv .venv
-source .venv/bin/activate
+python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
-cp .env.example .env   # then edit .env and fill in your keys
-```
-
-### `.env` values
-
-- `ANTHROPIC_API_KEY` — from https://console.anthropic.com/settings/keys
-- `SLACK_WEBHOOK_URL` — create an Incoming Webhook at
-  https://api.slack.com/messaging/webhooks
-- `LOOKBACK_HOURS` — defaults to `24`
-- `ANTHROPIC_MODEL` — defaults to `claude-haiku-4-5-20251001`
-
-### Feeds
-
-Edit `feeds.yaml` to add or remove publications. Each entry needs a `name` and
-a feed `url`. Prefer section-specific feeds (e.g. `/beauty/feed`) over the main
-site feed for less noise.
-
-## Run it
-
-```bash
+cp .env.example .env   # fill in keys
 python agent.py
-```
-
-## Schedule it daily (cron, 9am local)
-
-```
-0 9 * * * cd /path/to/marketing-agent- && .venv/bin/python agent.py >> agent.log 2>&1
 ```
