@@ -106,6 +106,67 @@ def fetch_articles(
     return articles
 
 
+THEME_EMOJI = {
+    "m&a": "💼",
+    "mergers & acquisitions": "💼",
+    "launches": "🚀",
+    "product launches": "🚀",
+    "ingredients & skincare": "🧴",
+    "ingredients": "🧴",
+    "skincare": "🧴",
+    "trends & beauty culture": "✨",
+    "trends": "✨",
+    "retail & distribution": "🛍️",
+    "retail & commerce": "🛍️",
+    "retail": "🛍️",
+    "tech & innovation": "🤖",
+    "innovation": "🤖",
+    "business & funding": "💰",
+    "business": "💰",
+    "funding": "💰",
+}
+
+
+def emoji_for(label: str) -> str:
+    return THEME_EMOJI.get(label.strip().lower(), "•")
+
+
+def slack_link(url: str, text: str) -> str:
+    safe = text.replace("|", "/").replace(">", "").replace("<", "")
+    return f"<{url}|{safe}>"
+
+
+def render_digest(data: dict) -> str:
+    lines: list[str] = []
+    title = data.get("title") or "Beauty Industry Digest"
+    lines.append(f"*{title}*")
+    lines.append("")
+    for theme in data.get("themes", []) or []:
+        label = (theme.get("label") or "").strip()
+        if not label:
+            continue
+        emoji = theme.get("emoji") or emoji_for(label)
+        lines.append(f"{emoji} *{label}*")
+        for item in theme.get("items", []) or []:
+            headline = (item.get("headline") or "").strip()
+            url = (item.get("url") or "").strip()
+            insight = (item.get("insight") or "").strip()
+            if not headline:
+                continue
+            link = slack_link(url, headline) if url else headline
+            suffix = f" — {insight}" if insight else ""
+            lines.append(f"• {link}{suffix}")
+        lines.append("")
+    takeaways = data.get("takeaways") or []
+    if takeaways:
+        lines.append("💡 *What it means*")
+        for t in takeaways:
+            t = (t or "").strip()
+            if t:
+                lines.append(f"• {t}")
+    return "\n".join(lines).rstrip()
+
+
 def summarize(
     client: Anthropic, model: str, articles: list[Article], window: str
 ) -> str:
@@ -120,31 +181,28 @@ def summarize(
         for a in articles
     ]
     system = (
-        "You are a beauty-industry analyst writing a Slack digest for a "
+        "You are a beauty-industry analyst building a daily digest for a "
         "marketer tracking beauty, skincare, and innovation.\n\n"
-        "FORMAT RULES — this is posted to Slack, which uses mrkdwn, NOT "
-        "standard Markdown:\n"
-        "- Bold uses SINGLE asterisks: *bold text* (never **bold**)\n"
-        "- NEVER use # or ## headings\n"
-        "- Links use Slack syntax: <https://url|link text> "
-        "(never [text](url))\n"
-        "- Bullets use the • character, not - or *\n\n"
-        "STRUCTURE:\n"
-        "Group articles by theme. For each theme, output a header line in "
-        "this exact format (emoji + space + bold label), then bullets "
-        "below. Pick the relevant themes from:\n"
-        "💼 *M&A*\n"
-        "🚀 *Launches*\n"
-        "🧴 *Ingredients & Skincare*\n"
-        "✨ *Trends & Beauty Culture*\n"
-        "🛍️ *Retail & Distribution*\n"
-        "🤖 *Tech & Innovation*\n"
-        "💰 *Business & Funding*\n\n"
-        "Each bullet: `• <url|Headline> — one crisp sentence of insight.`\n\n"
-        "End with a section:\n"
-        "💡 *What it means*\n"
-        "• 2-3 short takeaway bullets for a marketer.\n\n"
-        "Leave a blank line between sections. Keep it skimmable."
+        "Return ONLY a JSON object (no prose, no code fences) matching this "
+        "schema:\n"
+        "{\n"
+        '  "title": "Beauty Industry Digest — <month day range>",\n'
+        '  "themes": [\n'
+        "    {\n"
+        '      "label": "<one of: M&A | Launches | Ingredients & Skincare | '
+        "Trends & Beauty Culture | Retail & Distribution | Tech & Innovation "
+        '| Business & Funding>",\n'
+        '      "items": [\n'
+        '        {"headline": "<short rewritten headline>", '
+        '"url": "<source url>", '
+        '"insight": "<one crisp sentence of analyst insight>"}\n'
+        "      ]\n"
+        "    }\n"
+        "  ],\n"
+        '  "takeaways": ["<2-3 short marketer takeaways>"]\n'
+        "}\n\n"
+        "Only include themes that have at least one item. Keep insights "
+        "concrete and specific. Do not wrap the JSON in markdown."
     )
     user = (
         f"Date range analyzed: {window}\n"
@@ -158,7 +216,16 @@ def summarize(
         system=system,
         messages=[{"role": "user", "content": user}],
     )
-    return "".join(block.text for block in resp.content if block.type == "text")
+    raw = "".join(block.text for block in resp.content if block.type == "text")
+    try:
+        data = json.loads(raw)
+    except json.JSONDecodeError:
+        start = raw.find("{")
+        end = raw.rfind("}")
+        if start == -1 or end == -1:
+            return raw
+        data = json.loads(raw[start : end + 1])
+    return render_digest(data)
 
 
 def post_to_slack(webhook: str, window: str, count: int, digest: str) -> None:
