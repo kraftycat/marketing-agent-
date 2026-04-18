@@ -1,27 +1,61 @@
 # List of RSS/Atom feeds to scan for Beauty / Skincare / Innovation content.
 #
+# NOTE: I couldn't reach these hosts from the dev sandbox to verify them,
+# so the URLs below are the most commonly documented endpoints for each
+# publication. Run `python agent.py` once after filling in `.env` — any
+# feed that fails will print an error; swap that URL and re-run.
+#
 # Format:
 #   - name: Display name shown in the Slack digest
 #     url:  Full RSS or Atom feed URL
-#
-# Tip: many publications expose section-specific feeds (e.g. /beauty/feed or
-# /category/skincare/rss). Prefer those over the site's main feed so you get
-# less noise.
-#
-# Replace the examples below with your real publications.
 
 feeds:
-  - name: Allure — Skincare
-    url: https://www.allure.com/feed/category/skin/rss
-  - name: Vogue Business — Beauty
-    url: https://www.voguebusiness.com/feed/beauty
-  - name: Glossy — Beauty
-    url: https://www.glossy.co/beauty/feed/
+  # Refinery29 — site-wide feed (no public beauty-only feed); the keyword
+  # filter below keeps only beauty/skincare/innovation items.
+  - name: Refinery29
+    url: https://www.refinery29.com/rss.xml
+
+  # Vogue India — Condé Nast India sites typically expose /feed
+  - name: Vogue India
+    url: https://www.vogue.in/feed
+
+  # Vogue (US) — site-wide feed
+  - name: Vogue
+    url: https://www.vogue.com/feed/rss
+
+  # Elle (US) — beauty section feed
+  - name: Elle — Beauty
+    url: https://www.elle.com/rss/beauty.xml/
+
+  # Elle India — standard WordPress /feed/ endpoint
+  - name: Elle India
+    url: https://elle.in/feed/
+
+  # BeautyMatter — industry trade publication
+  - name: BeautyMatter
+    url: https://beautymatter.com/feed
+
+  # Business of Fashion (you confirmed you meant BoF, not "Beauty of Fashion")
+  - name: Business of Fashion
+    url: https://www.businessoffashion.com/arc/outboundfeeds/rss/?outputType=xml
+
+  # Allure — site-wide feed; keyword filter keeps skincare/innovation items
+  - name: Allure
+    url: https://www.allure.com/feed/rss
+
+  # Byrdie — site-wide feed
   - name: Byrdie
     url: https://www.byrdie.com/feeds/all.rss
 
+  # L'Oréal Paris Beauty Magazine does NOT publish a public RSS feed.
+  # Options: (1) omit it, (2) generate one with rss.app/Feedly and paste
+  # the URL below. Example placeholder:
+  # - name: L'Oréal Paris Beauty Magazine
+  #   url: https://rss.app/feeds/XXXXXXXX.xml
+
 # Keywords used to filter articles. An article is kept if its title, summary,
-# or category tags contain any of these (case-insensitive).
+# or category tags contain any of these (case-insensitive). Add brands,
+# ingredients, or trends you care about.
 keywords:
   - beauty
   - skincare
@@ -30,4 +64,10 @@ keywords:
   - ingredient
   - formulation
   - dermatology
+  - dermatologist
   - cosmetic
+  - serum
+  - retinol
+  - peptide
+  - niacinamide
+  - launch
