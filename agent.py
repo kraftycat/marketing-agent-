@@ -82,17 +82,19 @@ def fetch_articles(
         url = feed.get("url")
         if not url:
             continue
-        print(f"[fetch] {name}", file=sys.stderr)
         parsed = feedparser.parse(url)
         if parsed.bozo and not parsed.entries:
-            print(f"  ! failed: {parsed.bozo_exception}", file=sys.stderr)
+            print(f"[fetch] {name}: FAILED — {parsed.bozo_exception}", file=sys.stderr)
             continue
+        total = len(parsed.entries)
+        kept = 0
         for entry in parsed.entries:
             published = parse_date(entry)
             if published is None or published < since:
                 continue
             if not entry_matches(entry, keywords):
                 continue
+            kept += 1
             articles.append(
                 Article(
                     publication=name,
@@ -102,6 +104,7 @@ def fetch_articles(
                     summary=strip_html(entry.get("summary", ""))[:1500],
                 )
             )
+        print(f"[fetch] {name}: {kept}/{total} entries kept", file=sys.stderr)
     articles.sort(key=lambda a: a.published, reverse=True)
     return articles
 
