@@ -1,0 +1,33 @@
+# List of RSS/Atom feeds to scan for Beauty / Skincare / Innovation content.
+#
+# Format:
+#   - name: Display name shown in the Slack digest
+#     url:  Full RSS or Atom feed URL
+#
+# Tip: many publications expose section-specific feeds (e.g. /beauty/feed or
+# /category/skincare/rss). Prefer those over the site's main feed so you get
+# less noise.
+#
+# Replace the examples below with your real publications.
+
+feeds:
+  - name: Allure — Skincare
+    url: https://www.allure.com/feed/category/skin/rss
+  - name: Vogue Business — Beauty
+    url: https://www.voguebusiness.com/feed/beauty
+  - name: Glossy — Beauty
+    url: https://www.glossy.co/beauty/feed/
+  - name: Byrdie
+    url: https://www.byrdie.com/feeds/all.rss
+
+# Keywords used to filter articles. An article is kept if its title, summary,
+# or category tags contain any of these (case-insensitive).
+keywords:
+  - beauty
+  - skincare
+  - skin care
+  - innovation
+  - ingredient
+  - formulation
+  - dermatology
+  - cosmetic
