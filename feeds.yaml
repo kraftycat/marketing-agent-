@@ -39,9 +39,9 @@ feeds:
   - name: Business of Fashion
     url: https://www.businessoffashion.com/arc/outboundfeeds/rss/?outputType=xml
 
-  # Allure — site-wide feed; keyword filter keeps skincare/innovation items
+  # Allure — rss.app generated feed
   - name: Allure
-    url: https://www.allure.com/feed/rss
+    url: https://rss.app/feeds/noVxogKJDGubk4QG.xml
 
   # Byrdie — site-wide feed
   - name: Byrdie
