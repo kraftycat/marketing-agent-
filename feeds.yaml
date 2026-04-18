@@ -47,12 +47,6 @@ feeds:
   - name: Byrdie
     url: https://www.byrdie.com/feeds/all.rss
 
-  # L'Oréal Paris Beauty Magazine does NOT publish a public RSS feed.
-  # Options: (1) omit it, (2) generate one with rss.app/Feedly and paste
-  # the URL below. Example placeholder:
-  # - name: L'Oréal Paris Beauty Magazine
-  #   url: https://rss.app/feeds/XXXXXXXX.xml
-
 # Keywords used to filter articles. An article is kept if its title, summary,
 # or category tags contain any of these (case-insensitive). Add brands,
 # ingredients, or trends you care about.
